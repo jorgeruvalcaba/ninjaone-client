@@ -5,21 +5,23 @@ import _ from 'lodash'
 import { PlusIcon } from '@heroicons/react/20/solid'
 import { useRouter } from 'next/router'
 
-import { DEFAULT_TYPE, Device, FormValue, Type, TYPES } from '../types'
+import {
+  DEFAULT_TYPE,
+  Device,
+  FormValue,
+  Type,
+  TYPES,
+  ModalTitles,
+} from '../types'
 import { BASE_URL } from '../constants'
 import { Select } from '../components/Select'
 import { List } from '../components/List'
 import { Modal } from '../components/Modal'
 import { Button } from '../components/Button'
-import { saveDevice } from '../api'
+import { deleteDevice, saveDevice, updateDevice } from '../api'
 
 type HomeProps = {
   fetchedDevices: Device[]
-}
-
-enum ModalTitles {
-  AddDevice = 'Add Device',
-  UpdateDevice = 'Update Device',
 }
 
 const SORT_BY: Type[] = [
@@ -35,9 +37,10 @@ export default function Home({ fetchedDevices }: HomeProps) {
   const [type, setType] = useState<Type>(DEFAULT_TYPE)
   const [sortBy, setSortBy] = useState<Type>({ name: 'Select...', slug: '' })
   const [isOpen, setIsOpen] = useState(false)
-  const [modalTitle, setModalTitle] = useState<string>(ModalTitles.AddDevice)
-
-  console.log({ devices })
+  const [modalTitle, setModalTitle] = useState<ModalTitles>(
+    ModalTitles.AddDevice
+  )
+  const [deviceToUpdate, setDeviceToUpdate] = useState<Device>()
 
   useEffect(() => {
     const newDevices = baseDevices.filter((device) => {
@@ -72,12 +75,33 @@ export default function Home({ fetchedDevices }: HomeProps) {
     openModal()
   }
 
-  const handleSubmit = async (data: FormValue) => {
-    const res = await saveDevice(data)
+  const handleEdit = (device: Device) => {
+    setDeviceToUpdate(device)
+    setModalTitle(ModalTitles.UpdateDevice)
+    openModal()
+  }
+
+  const handleSubmit = async (data: FormValue, title: ModalTitles) => {
+    let res
+
+    if (title === ModalTitles.AddDevice) {
+      res = await saveDevice(data)
+    }
+
+    if (title === ModalTitles.UpdateDevice) {
+      res = await updateDevice(data)
+    }
 
     // @ts-ignore
     if (res.status < 300) refreshData()
     closeModal()
+  }
+
+  const handleDelete = async (data: FormValue) => {
+    const res = await deleteDevice(data)
+
+    // @ts-ignore
+    if (res.status < 300) refreshData()
   }
 
   return (
@@ -121,7 +145,13 @@ export default function Home({ fetchedDevices }: HomeProps) {
               </div>
             </div>
 
-            {devices.length > 0 ? <List items={devices} /> : null}
+            {devices.length > 0 ? (
+              <List
+                items={devices}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+              />
+            ) : null}
           </main>
         </div>
       </div>
@@ -130,6 +160,7 @@ export default function Home({ fetchedDevices }: HomeProps) {
         closeModal={closeModal}
         onSubmit={handleSubmit}
         title={modalTitle}
+        deviceToUpdate={deviceToUpdate}
       />
     </>
   )

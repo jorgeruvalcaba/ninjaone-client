@@ -2,30 +2,54 @@ import { ChangeEvent, FormEvent, Fragment, useEffect, useState } from 'react'
 import { Transition, Dialog } from '@headlessui/react'
 
 import { Select } from '../Select'
-import { DEFAULT_TYPE, FormValue, Type, ADD_TYPES } from '../../types'
+import {
+  DEFAULT_ADD_TYPE,
+  FormValue,
+  Type,
+  ADD_TYPES,
+  Device,
+  ModalTitles,
+} from '../../types'
 
 type ModalProps = {
   isOpen: boolean
   // eslint-disable-next-line no-unused-vars
   closeModal: (value: any) => void
   // eslint-disable-next-line no-unused-vars
-  onSubmit: (value: any) => void
-  title: string
+  onSubmit: (value: any, title: ModalTitles) => void
+  title: ModalTitles
+  deviceToUpdate?: Device
 }
 
 const DEFAULT_FORM_VALUE = {
+  id: '',
   systemName: '',
   type: '',
   hddCapacity: '',
 }
 
-export const Modal = ({ isOpen, closeModal, title, onSubmit }: ModalProps) => {
-  const [type, setType] = useState<Type>(DEFAULT_TYPE)
+export const Modal = ({
+  isOpen,
+  closeModal,
+  title,
+  onSubmit,
+  deviceToUpdate,
+}: ModalProps) => {
+  const [type, setType] = useState<Type>(DEFAULT_ADD_TYPE)
   const [values, setValues] = useState<FormValue>(DEFAULT_FORM_VALUE)
 
   useEffect(() => {
     setValues({ ...values, type: type.slug })
   }, [type])
+
+  useEffect(() => {
+    setValues({
+      id: deviceToUpdate?.id ?? '',
+      systemName: deviceToUpdate?.system_name ?? '',
+      type: deviceToUpdate?.type ?? '',
+      hddCapacity: deviceToUpdate?.hdd_capacity ?? '',
+    })
+  }, [deviceToUpdate])
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     let value: typeof values[keyof typeof values] = event.target.value
@@ -34,7 +58,7 @@ export const Modal = ({ isOpen, closeModal, title, onSubmit }: ModalProps) => {
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    onSubmit(values)
+    onSubmit(values, title)
     setValues(DEFAULT_FORM_VALUE)
   }
 
@@ -89,6 +113,7 @@ export const Modal = ({ isOpen, closeModal, title, onSubmit }: ModalProps) => {
                       text-sm rounded-lg block w-full p-2.5"
                       placeholder="Mac-Pro"
                       onChange={handleChange}
+                      value={values.systemName}
                       required
                     />
                   </div>
@@ -114,6 +139,7 @@ export const Modal = ({ isOpen, closeModal, title, onSubmit }: ModalProps) => {
                       placeholder="500"
                       required
                       onChange={handleChange}
+                      value={values.hddCapacity}
                     />
                   </div>
                   <div className="flex flex-row">

@@ -25,8 +25,16 @@ export const ADD_TYPES: Type[] = [
 
 export const [DEFAULT_TYPE] = TYPES
 
+export const [DEFAULT_ADD_TYPE] = ADD_TYPES
+
 export type FormValue = {
+  id?: string
   systemName: string
   type: string
   hddCapacity: string
+}
+
+export enum ModalTitles {
+  AddDevice = 'Add Device',
+  UpdateDevice = 'Update Device',
 }
