@@ -2,7 +2,7 @@ import { ChangeEvent, FormEvent, Fragment, useEffect, useState } from 'react'
 import { Transition, Dialog } from '@headlessui/react'
 
 import { Select } from '../Select'
-import { DEFAULT_TYPE, FormValue, Type, TYPES } from '../../types'
+import { DEFAULT_TYPE, FormValue, Type, ADD_TYPES } from '../../types'
 
 type ModalProps = {
   isOpen: boolean
@@ -35,6 +35,7 @@ export const Modal = ({ isOpen, closeModal, title, onSubmit }: ModalProps) => {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     onSubmit(values)
+    setValues(DEFAULT_FORM_VALUE)
   }
 
   return (
@@ -93,7 +94,7 @@ export const Modal = ({ isOpen, closeModal, title, onSubmit }: ModalProps) => {
                   </div>
                   <div className="mb-6">
                     <Select
-                      options={TYPES}
+                      options={ADD_TYPES}
                       value={type}
                       onValueChange={setType}
                       label="Type*"
@@ -124,7 +125,7 @@ export const Modal = ({ isOpen, closeModal, title, onSubmit }: ModalProps) => {
                       focus-visible:ring-gray-500 focus-visible:ring-offset-2
                       disabled:border-gray-200 disabled:text-gray-200"
                       disabled={
-                        !values.type ||
+                        values.type === 'ALL' ||
                         !values.hddCapacity ||
                         !values.systemName
                       }

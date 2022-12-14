@@ -1,5 +1,3 @@
-import axios from 'axios'
-
 import { BASE_URL } from '../constants'
 import { FormValue } from '../types'
 
@@ -18,8 +16,7 @@ export const saveDevice = async ({
       },
       body: JSON.stringify(payload),
     })
-    const success = await res.json()
-    return success
+    return res
   } catch (err) {
     return err
   }

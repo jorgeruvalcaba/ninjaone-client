@@ -17,6 +17,12 @@ export const TYPES: Type[] = [
   { name: 'Windows Workstation', slug: 'WINDOWS_WORKSTATION' },
 ]
 
+export const ADD_TYPES: Type[] = [
+  { name: 'Mac', slug: 'MAC' },
+  { name: 'Windows Server', slug: 'WINDOWS_SERVER' },
+  { name: 'Windows Workstation', slug: 'WINDOWS_WORKSTATION' },
+]
+
 export const [DEFAULT_TYPE] = TYPES
 
 export type FormValue = {

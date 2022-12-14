@@ -3,6 +3,7 @@ import Head from 'next/head'
 import { GetServerSideProps } from 'next'
 import _ from 'lodash'
 import { PlusIcon } from '@heroicons/react/20/solid'
+import { useRouter } from 'next/router'
 
 import { DEFAULT_TYPE, Device, FormValue, Type, TYPES } from '../types'
 import { BASE_URL } from '../constants'
@@ -27,6 +28,8 @@ const SORT_BY: Type[] = [
 ]
 
 export default function Home({ fetchedDevices }: HomeProps) {
+  const router = useRouter()
+
   const [baseDevices] = useState(fetchedDevices)
   const [devices, setDevices] = useState(fetchedDevices)
   const [type, setType] = useState<Type>(DEFAULT_TYPE)
@@ -43,6 +46,8 @@ export default function Home({ fetchedDevices }: HomeProps) {
     })
     setDevices(newDevices)
   }, [type, baseDevices])
+
+  const refreshData = () => router.reload()
 
   const handleSortBy = (value: Type) => {
     let sortedDevices = []
@@ -67,9 +72,11 @@ export default function Home({ fetchedDevices }: HomeProps) {
     openModal()
   }
 
-  const handleSubmit = (data: FormValue) => {
-    const res = saveDevice(data)
-    console.log({ res })
+  const handleSubmit = async (data: FormValue) => {
+    const res = await saveDevice(data)
+
+    // @ts-ignore
+    if (res.status < 300) refreshData()
     closeModal()
   }
 
