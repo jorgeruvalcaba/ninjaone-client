@@ -14,6 +14,7 @@ React client web application to work with devices.
 - Make sure to have up and running the server app
 
 ```bash
+cd devicesTask_serverApp
 npm install && npm start
 ```
 
