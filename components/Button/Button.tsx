@@ -1,23 +1,30 @@
-import { ReactNode } from 'react'
+import { MouseEventHandler, ReactNode } from 'react'
 
 type ButtonProps = {
   children: ReactNode
+  onClick?: MouseEventHandler<HTMLButtonElement>
+  disabled?: boolean
+  className?: string
 }
 
-export function Button({ children }: ButtonProps) {
+export const Button = ({
+  children,
+  onClick,
+  disabled,
+  className,
+}: ButtonProps) => {
   return (
     <button
-      className="inline-flex select-none items-center justify-center 
-        rounded-md px-4 py-2 text-sm font-medium bg-white border-2 border-black text-gray-700
-      hover:bg-gray-50 focus:outline-none focus-visible:ring focus-visible:ring-purple-500 
-        focus-visible:ring-opacity-75 group radix-state-open:bg-gray-50 
-        radix-state-on:bg-gray-50 radix-state-instant-open:bg-gray-50 
-        radix-state-delayed-open:bg-gray-50"
+      type="button"
+      className={`inline-block px-6 py-2 border-2 border-gray-800 text-gray-800 
+        text-sm rounded-lg hover:bg-black 
+        hover:bg-opacity-5 focus:outline-none focus:ring-0 transition
+        disabled:border-gray-200 disabled:text-gray-200 
+        duration-150 ease-in-out ${className}`}
+      onClick={onClick}
+      disabled={disabled}
     >
       {children}
     </button>
   )
 }
-
-Button.displayName = 'Button'
-export default Button

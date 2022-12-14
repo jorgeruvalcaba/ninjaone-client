@@ -2,47 +2,39 @@ import { useState, useEffect } from 'react'
 import Head from 'next/head'
 import { GetServerSideProps } from 'next'
 import _ from 'lodash'
+import { PlusIcon } from '@heroicons/react/20/solid'
 
-import { Device } from '../api'
+import { DEFAULT_TYPE, Device, FormValue, Type, TYPES } from '../types'
 import { BASE_URL } from '../constants'
 import { Select } from '../components/Select'
+import { List } from '../components/List'
+import { Modal } from '../components/Modal'
+import { Button } from '../components/Button'
+import { saveDevice } from '../api'
 
 type HomeProps = {
   fetchedDevices: Device[]
 }
 
-type Type = {
-  name: string
-  slug: string
+enum ModalTitles {
+  AddDevice = 'Add Device',
+  UpdateDevice = 'Update Device',
 }
-
-const TYPES: Type[] = [
-  { name: 'All', slug: 'ALL' },
-  { name: 'Mac', slug: 'MAC' },
-  { name: 'Windows Server', slug: 'WINDOWS_SERVER' },
-  { name: 'Windows Workstation', slug: 'WINDOWS_WORKSTATION' },
-]
 
 const SORT_BY: Type[] = [
   { name: 'System Name', slug: 'system_name' },
   { name: 'HDD Capacity', slug: 'hdd_capacity' },
 ]
 
-const [DEFAULT_TYPE] = TYPES
-
-const DISPLAY_TYPES = {
-  MAC: 'Mac',
-  WINDOWS_SERVER: 'Windows Server',
-  WINDOWS_WORKSTATION: 'Windows Workstation',
-}
-
 export default function Home({ fetchedDevices }: HomeProps) {
   const [baseDevices] = useState(fetchedDevices)
   const [devices, setDevices] = useState(fetchedDevices)
   const [type, setType] = useState<Type>(DEFAULT_TYPE)
   const [sortBy, setSortBy] = useState<Type>({ name: 'Select...', slug: '' })
+  const [isOpen, setIsOpen] = useState(false)
+  const [modalTitle, setModalTitle] = useState<string>(ModalTitles.AddDevice)
 
-  console.log({ type, sortBy, devices })
+  console.log({ devices })
 
   useEffect(() => {
     const newDevices = baseDevices.filter((device) => {
@@ -67,6 +59,20 @@ export default function Home({ fetchedDevices }: HomeProps) {
     setDevices(sortedDevices)
   }
 
+  const closeModal = () => setIsOpen(false)
+  const openModal = () => setIsOpen(true)
+
+  const openNewDeviceModal = () => {
+    setModalTitle(ModalTitles.AddDevice)
+    openModal()
+  }
+
+  const handleSubmit = (data: FormValue) => {
+    const res = saveDevice(data)
+    console.log({ res })
+    closeModal()
+  }
+
   return (
     <>
       <Head>
@@ -81,52 +87,43 @@ export default function Home({ fetchedDevices }: HomeProps) {
             Device Management
           </h1>
           <main>
-            <div className="flex flex-row mb-8">
-              <div className="mr-8 flex">
-                <Select
-                  options={TYPES}
-                  value={type}
-                  onValueChange={setType}
-                  label="Type:"
-                />
+            <div className="flex flex-row justify-between mb-8">
+              <div className="flex flex-row">
+                <div className="mr-8">
+                  <Select
+                    options={TYPES}
+                    value={type}
+                    onValueChange={setType}
+                    label="Type:"
+                  />
+                </div>
+                <div className="mr-8 flex">
+                  <Select
+                    options={SORT_BY}
+                    value={sortBy}
+                    onValueChange={handleSortBy}
+                    label="Sort by:"
+                  />
+                </div>
               </div>
-              <div className="mr-8 flex">
-                <Select
-                  options={SORT_BY}
-                  value={sortBy}
-                  onValueChange={handleSortBy}
-                  label="Sort by:"
-                />
+              <div className="self-end">
+                <Button onClick={openNewDeviceModal} className="flex flex-row">
+                  <PlusIcon className="h-5 w-5 text-black" aria-hidden="true" />{' '}
+                  Add Item
+                </Button>
               </div>
             </div>
 
-            {devices.length > 0 ? (
-              <div className="w-full flex flex-col">
-                <div className="w-2/5">
-                  {devices.map((device) => (
-                    <div
-                      key={device.id}
-                      className="border-2 border-black rounded-lg p-4 mb-4 shadow hover:shadow-2xl transition ease-in-out hover:-translate-y-1 hover:scale-110 duraction-300 delay-150"
-                    >
-                      <p className="text-md font-semibold font-poppins">
-                        {device.system_name}
-                      </p>
-                      <p className="text-sm font-poppins">
-                        {
-                          DISPLAY_TYPES[
-                            device.type as keyof typeof DISPLAY_TYPES
-                          ]
-                        }{' '}
-                        · {device.hdd_capacity} GB SDD disk
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : null}
+            {devices.length > 0 ? <List items={devices} /> : null}
           </main>
         </div>
       </div>
+      <Modal
+        isOpen={isOpen}
+        closeModal={closeModal}
+        onSubmit={handleSubmit}
+        title={modalTitle}
+      />
     </>
   )
 }
