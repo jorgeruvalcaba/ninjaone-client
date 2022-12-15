@@ -1,6 +1,15 @@
 import { BASE_URL } from '../constants'
 import { FormValue } from '../types'
 
+export const getDevices = async () => {
+  try {
+    const res = await fetch(`${BASE_URL}/devices`)
+    return res.json()
+  } catch (err) {
+    return err
+  }
+}
+
 export const saveDevice = async ({
   systemName,
   type,

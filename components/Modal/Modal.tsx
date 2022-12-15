@@ -16,7 +16,7 @@ type ModalProps = {
   // eslint-disable-next-line no-unused-vars
   closeModal: (value: any) => void
   // eslint-disable-next-line no-unused-vars
-  onSubmit: (value: any, title: ModalTitles) => void
+  onSubmit: (value: any) => void
   title: ModalTitles
   deviceToUpdate?: Device
 }
@@ -58,8 +58,13 @@ export const Modal = ({
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    onSubmit(values, title)
+    onSubmit(values)
     setValues(DEFAULT_FORM_VALUE)
+  }
+
+  const handleClose = () => {
+    setValues(DEFAULT_FORM_VALUE)
+    closeModal(true)
   }
 
   return (
@@ -164,7 +169,7 @@ export const Modal = ({
                       border-black bg-white px-4 py-2 text-sm font-medium text-black
                       hover:bg-gray-200 focus:outline-none focus-visible:ring-2 
                       focus-visible:ring-gray-500 focus-visible:ring-offset-2"
-                      onClick={closeModal}
+                      onClick={handleClose}
                     >
                       Cancel
                     </button>

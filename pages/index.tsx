@@ -1,9 +1,7 @@
 import { useState, useEffect } from 'react'
 import Head from 'next/head'
-import { GetServerSideProps } from 'next'
 import _ from 'lodash'
 import { PlusIcon } from '@heroicons/react/20/solid'
-import { useRouter } from 'next/router'
 
 import {
   DEFAULT_TYPE,
@@ -13,27 +11,20 @@ import {
   TYPES,
   ModalTitles,
 } from '../types'
-import { BASE_URL } from '../constants'
 import { Select } from '../components/Select'
 import { List } from '../components/List'
 import { Modal } from '../components/Modal'
 import { Button } from '../components/Button'
-import { deleteDevice, saveDevice, updateDevice } from '../api'
-
-type HomeProps = {
-  fetchedDevices: Device[]
-}
+import { deleteDevice, getDevices, saveDevice, updateDevice } from '../api'
 
 const SORT_BY: Type[] = [
   { name: 'System Name', slug: 'system_name' },
   { name: 'HDD Capacity', slug: 'hdd_capacity' },
 ]
 
-export default function Home({ fetchedDevices }: HomeProps) {
-  const router = useRouter()
-
-  const [baseDevices] = useState(fetchedDevices)
-  const [devices, setDevices] = useState(fetchedDevices)
+export default function Home() {
+  const [baseDevices, setBaseDevices] = useState<Device[]>()
+  const [devices, setDevices] = useState(baseDevices)
   const [type, setType] = useState<Type>(DEFAULT_TYPE)
   const [sortBy, setSortBy] = useState<Type>({ name: 'Select...', slug: '' })
   const [isOpen, setIsOpen] = useState(false)
@@ -41,22 +32,32 @@ export default function Home({ fetchedDevices }: HomeProps) {
     ModalTitles.AddDevice
   )
   const [deviceToUpdate, setDeviceToUpdate] = useState<Device>()
+  const [refetch, setRefetch] = useState(false)
 
   useEffect(() => {
-    const newDevices = baseDevices.filter((device) => {
-      if (type.name === 'All') return device
-      return device.type === type.slug
-    })
-    setDevices(newDevices)
+    const fetchDevices = async () => {
+      const fetchedDevices = await getDevices()
+      if (fetchedDevices) setBaseDevices(fetchedDevices)
+    }
+
+    fetchDevices()
+  }, [refetch])
+
+  useEffect(() => {
+    if (baseDevices) {
+      const newDevices = baseDevices.filter((device) => {
+        if (type.name === 'All') return device
+        return device.type === type.slug
+      })
+      setDevices(newDevices)
+    }
   }, [type, baseDevices])
 
-  const refreshData = () => router.reload()
-
   const handleSortBy = (value: Type) => {
-    let sortedDevices = []
+    let sortedDevices: Device[] = []
 
     if (value.slug === 'hdd_capacity') {
-      sortedDevices = _.sortBy(devices, (device) =>
+      sortedDevices = _.sortBy(devices, (device: Device) =>
         parseInt(device.hdd_capacity, 10)
       )
     } else {
@@ -81,19 +82,19 @@ export default function Home({ fetchedDevices }: HomeProps) {
     openModal()
   }
 
-  const handleSubmit = async (data: FormValue, title: ModalTitles) => {
+  const handleSubmit = async (data: FormValue) => {
     let res
 
-    if (title === ModalTitles.AddDevice) {
+    console.log({ data, deviceToUpdate })
+    if (deviceToUpdate?.id && deviceToUpdate.id !== '') {
+      res = await updateDevice(data)
+      setDeviceToUpdate(undefined)
+    } else {
       res = await saveDevice(data)
     }
 
-    if (title === ModalTitles.UpdateDevice) {
-      res = await updateDevice(data)
-    }
-
     // @ts-ignore
-    if (res.status < 300) refreshData()
+    if (res.status < 300) setRefetch(!refetch)
     closeModal()
   }
 
@@ -101,7 +102,7 @@ export default function Home({ fetchedDevices }: HomeProps) {
     const res = await deleteDevice(data)
 
     // @ts-ignore
-    if (res.status < 300) refreshData()
+    if (res.status < 300) setRefetch(!refetch)
   }
 
   return (
@@ -145,7 +146,7 @@ export default function Home({ fetchedDevices }: HomeProps) {
               </div>
             </div>
 
-            {devices.length > 0 ? (
+            {devices && devices?.length > 0 ? (
               <List
                 items={devices}
                 onEdit={handleEdit}
@@ -164,13 +165,4 @@ export default function Home({ fetchedDevices }: HomeProps) {
       />
     </>
   )
-}
-
-export const getServerSideProps: GetServerSideProps<{
-  fetchedDevices: Device[]
-}> = async () => {
-  const res = await fetch(`${BASE_URL}/devices`)
-  const devices = await res.json()
-
-  return { props: { fetchedDevices: devices } }
 }
